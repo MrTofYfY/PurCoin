@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PurCoin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        
+        html, body {
+            height: 100%;
+            height: -webkit-fill-available;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, #1a0a2e 0%, #0d0515 50%, #1a0a2e 100%);
+            background-size: 100% 200%;
+            animation: gradientMove 8s ease infinite;
+            color: white;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        @keyframes gradientMove {
+            0%, 100% { background-position: 0% 0%; }
+            50% { background-position: 0% 100%; }
+        }
+        
+        /* Stars background */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 0.8; transform: scale(1); }
+        }
+        
+        .app {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px 20px 15px;
+            text-align: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+        
+        .balance-label {
+            color: #a78bfa;
+            font-size: clamp(12px, 3vw, 14px);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        .balance-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .balance-icon {
+            width: clamp(36px, 9vw, 44px);
+            height: clamp(36px, 9vw, 44px);
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+            animation: iconGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes iconGlow {
+            0% { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
+            100% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.7); }
+        }
+        
+        .balance-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: hue-rotate(200deg) saturate(1.5);
+        }
+        
+        .balance {
+            font-size: clamp(36px, 11vw, 52px);
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.5));
+        }
+        
+        .stats-row {
+            margin-top: 10px;
+            color: #c4b5fd;
+            font-size: clamp(12px, 3vw, 14px);
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(139, 92, 246, 0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        
+        .stat-item span {
+            font-weight: 700;
+            color: #e9d5ff;
+        }
+        
+        /* Main Content */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            min-height: 0;
+        }
+        
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding: 15px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Home Tab - Coin */
+        .home-tab {
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .coin-wrapper {
+            position: relative;
+            margin-bottom: clamp(25px, 6vh, 50px);
+        }
+        
+        /* Glow rings */
+        .glow-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            animation: ringPulse 2s ease-out infinite;
+        }
+        
+        .glow-ring:nth-child(1) {
+            width: 110%;
+            height: 110%;
+            animation-delay: 0s;
+        }
+        
+        .glow-ring:nth-child(2) {
+            width: 125%;
+            height: 125%;
+            animation-delay: 0.5s;
+        }
+        
+        .glow-ring:nth-child(3) {
+            width: 140%;
+            height: 140%;
+            animation-delay: 1s;
+        }
+        
+        @keyframes ringPulse {
+            0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.9); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+        }
+        
+        .coin {
+            width: clamp(200px, 55vw, 280px);
+            height: clamp(200px, 55vw, 280px);
+            background: linear-gradient(145deg, #a855f7, #7c3aed, #6d28d9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 0 80px rgba(168, 85, 247, 0.6),
+                0 0 120px rgba(139, 92, 246, 0.3),
+                inset 0 -8px 25px rgba(0,0,0,0.3),
+                inset 0 8px 25px rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            overflow: hidden;
+            position: relative;
+            animation: coinFloat 3s ease-in-out infinite;
+            z-index: 2;
+        }
+        
+        @keyframes coinFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .coin::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.1) 50%,
+                transparent 60%
+            );
+            animation: shine 4s ease-in-out infinite;
+            z-index: 3;
+            pointer-events: none;
+        }
+        
+        @keyframes shine {
+            0%, 100% { transform: translateX(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) rotate(45deg); }
+        }
+        
+        .coin::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(145deg, rgba(168, 85, 247, 0.2), rgba(124, 58, 237, 0.4));
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .coin:active {
+            transform: scale(0.92) !important;
+            box-shadow: 
+                0 0 40px rgba(168, 85, 247, 0.8),
+                0 0 80px rgba(139, 92, 246, 0.5),
+                inset 0 -4px 15px rgba(0,0,0,0.4),
+                inset 0 4px 15px rgba(255,255,255,0.3);
+            animation: none;
+        }
+        
+        .coin-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: hue-rotate(200deg) saturate(1.3) brightness(1.1);
+        }
+        
+        .tap-text {
+            position: absolute;
+            pointer-events: none;
+            font-size: clamp(24px, 7vw, 36px);
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 2px 10px rgba(0,0,0,0.5);
+            opacity: 0;
+            animation: tapFloat 0.7s ease-out forwards;
+            z-index: 10;
+        }
+        
+        @keyframes tapFloat {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            50% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-80px) scale(1.2); }
+        }
+        
+        /* Energy Bar */
+        .energy-container {
+            width: 100%;
+            max-width: 320px;
+            padding: 0 15px;
+        }
+        
+        .energy-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: clamp(13px, 3.5vw, 15px);
+            color: #c4b5fd;
+            font-weight: 600;
+        }
+        
+        .energy-header svg {
+            width: 20px;
+            height: 20px;
+            fill: #facc15;
+            filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.6));
+        }
+        
+        .energy-bar {
+            width: 100%;
+            height: clamp(12px, 3vw, 16px);
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #a855f7, #c084fc);
+            border-radius: 12px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+            position: relative;
+        }
+        
+        .energy-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.3), transparent);
+            border-radius: 12px 12px 0 0;
+        }
+        
+        /* Shop Tab */
+        .shop-tab {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+        }
+        
+        .shop-title {
+            font-size: clamp(20px, 5.5vw, 26px);
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .upgrade-card {
+            background: linear-gradient(145deg, rgba(139, 92, 246, 0.12), rgba(88, 28, 135, 0.18));
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 16px;
+            padding: clamp(14px, 3.5vw, 18px);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upgrade-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .upgrade-card:hover::before {
+            left: 100%;
+        }
+        
+        .upgrade-card:active {
+            transform: scale(0.98);
+            background: linear-gradient(145deg, rgba(139, 92, 246, 0.25), rgba(88, 28, 135, 0.35));
+            border-color: rgba(168, 85, 247, 0.5);
+        }
+        
+        .upgrade-card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .upgrade-icon {
+            width: clamp(48px, 12vw, 56px);
+            height: clamp(48px, 12vw, 56px);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .upgrade-icon svg {
+            width: clamp(24px, 6vw, 30px);
+            height: clamp(24px, 6vw, 30px);
+            fill: white;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        .upgrade-icon.purple { background: linear-gradient(145deg, #a855f7, #7c3aed); }
+        .upgrade-icon.yellow { background: linear-gradient(145deg, #facc15, #eab308); }
+        .upgrade-icon.green { background: linear-gradient(145deg, #22c55e, #16a34a); }
+        .upgrade-icon.blue { background: linear-gradient(145deg, #3b82f6, #2563eb); }
+        
+        .upgrade-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .upgrade-name {
+            font-weight: 700;
+            font-size: clamp(15px, 4vw, 17px);
+            margin-bottom: 4px;
+        }
+        
+        .upgrade-desc {
+            font-size: clamp(12px, 3vw, 14px);
+            color: #a1a1aa;
+            margin-bottom: 4px;
+        }
+        
+        .upgrade-level {
+            font-size: clamp(11px, 2.8vw, 13px);
+            color: #a78bfa;
+            font-weight: 600;
+        }
+        
+        .upgrade-cost {
+            text-align: right;
+            flex-shrink: 0;
+        }
+        
+        .cost-value {
+            font-weight: 800;
+            font-size: clamp(16px, 4.5vw, 18px);
+            color: #e9d5ff;
+        }
+        
+        .cost-label {
+            font-size: clamp(10px, 2.5vw, 12px);
+            color: #71717a;
+        }
+        
+        /* Listing Tab */
+        .listing-tab {
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .listing-card {
+            background: linear-gradient(145deg, rgba(139, 92, 246, 0.15), rgba(88, 28, 135, 0.25));
+            border: 2px solid rgba(139, 92, 246, 0.4);
+            border-radius: 24px;
+            padding: clamp(20px, 5vw, 40px) clamp(20px, 5vw, 35px);
+            text-align: center;
+            max-width: 340px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            margin: auto;
+        }
+        
+        .listing-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%);
+            animation: listingGlow 4s ease-in-out infinite;
+        }
+        
+        @keyframes listingGlow {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(10%, 10%); }
+        }
+        
+        .listing-icon {
+            width: clamp(60px, 15vw, 80px);
+            height: clamp(60px, 15vw, 80px);
+            margin: 0 auto clamp(15px, 4vw, 25px);
+            background: linear-gradient(145deg, #a855f7, #7c3aed);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 40px rgba(168, 85, 247, 0.5);
+            animation: rocketBounce 2s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+        
+        @keyframes rocketBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .listing-icon svg {
+            width: clamp(28px, 8vw, 40px);
+            height: clamp(28px, 8vw, 40px);
+            fill: white;
+        }
+        
+        .listing-title {
+            font-size: clamp(18px, 5vw, 26px);
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .listing-subtitle {
+            color: #a1a1aa;
+            margin-bottom: 10px;
+            font-size: clamp(12px, 3vw, 15px);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .listing-date {
+            font-size: clamp(24px, 7vw, 34px);
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 0 30px rgba(168, 85, 247, 0.8);
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .listing-hint {
+            font-size: clamp(11px, 2.8vw, 13px);
+            color: #71717a;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+            line-height: 1.4;
+        }
+        
+        .listing-balance-box {
+            background: rgba(88, 28, 135, 0.4);
+            border-radius: 14px;
+            padding: clamp(12px, 3.5vw, 18px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .listing-balance-label {
+            font-size: clamp(11px, 2.8vw, 13px);
+            color: #a1a1aa;
+            margin-bottom: 6px;
+        }
+        
+        .listing-balance-value {
+            font-size: clamp(20px, 6vw, 28px);
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: rgba(13, 5, 21, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(139, 92, 246, 0.3);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            flex-shrink: 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            color: #71717a;
+            transition: all 0.25s ease;
+            padding: 8px 20px;
+            flex: 1;
+            max-width: 100px;
+            border-radius: 12px;
+        }
+        
+        .nav-item svg {
+            width: clamp(24px, 6.5vw, 30px);
+            height: clamp(24px, 6.5vw, 30px);
+            fill: currentColor;
+            transition: all 0.25s ease;
+        }
+        
+        .nav-item span {
+            font-size: clamp(10px, 2.5vw, 12px);
+            font-weight: 600;
+        }
+        
+        .nav-item.active {
+            color: #c084fc;
+        }
+        
+        .nav-item.active svg {
+            filter: drop-shadow(0 0 12px rgba(192, 132, 252, 0.9));
+            transform: scale(1.1);
+        }
+        
+        /* Landscape mode adjustments */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .header {
+                padding: 10px 20px 8px;
+            }
+            .balance {
+                font-size: 28px;
+            }
+            .coin {
+                width: 140px;
+                height: 140px;
+            }
+            .coin-wrapper {
+                margin-bottom: 15px;
+            }
+            .stats-row {
+                margin-top: 6px;
+            }
+            .glow-ring {
+                display: none;
+            }
+        }
+        
+        /* Large screens */
+        @media (min-width: 768px) {
+            .app {
+                max-width: 420px;
+                margin: 0 auto;
+                border-left: 1px solid rgba(139, 92, 246, 0.2);
+                border-right: 1px solid rgba(139, 92, 246, 0.2);
+            }
+        }
+        
+        /* Small phones */
+        @media (max-height: 650px) and (orientation: portrait) {
+            .header {
+                padding: 12px 15px 10px;
+            }
+            .coin {
+                width: 170px;
+                height: 170px;
+            }
+            .coin-wrapper {
+                margin-bottom: 20px;
+            }
+            .glow-ring:nth-child(3) {
+                display: none;
+            }
+        }
+        
+        /* Very small phones */
+        @media (max-height: 550px) and (orientation: portrait) {
+            .header {
+                padding: 8px 15px;
+            }
+            .stats-row {
+                display: none;
+            }
+            .coin {
+                width: 150px;
+                height: 150px;
+            }
+            .coin-wrapper {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Stars background -->
+    <div class="stars" id="stars"></div>
+    
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <div class="balance-label">Ваш баланс</div>
+            <div class="balance-container">
+                <div class="balance-icon">
+                    <img src="https://public.bnbstatic.com/image/pgc/202402/e912e601d04c20390684b14495ffe9ee.jpg" alt="coin">
+                </div>
+                <div class="balance" id="balance">0</div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-item">За тап: <span id="perTap">+1</span></div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Shop Tab -->
+            <div class="tab-content shop-tab" id="tab-shop">
+                <div class="shop-title">Магазин улучшений</div>
+                
+                <div class="upgrade-card" onclick="buyUpgrade('multitap')">
+                    <div class="upgrade-icon purple">
+                        <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+                    </div>
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">Мультитап</div>
+                        <div class="upgrade-desc" id="multitapDesc">+1 монет за тап</div>
+                        <div class="upgrade-level">Уровень: <span id="multitapLevel">0</span>/50</div>
+                    </div>
+                    <div class="upgrade-cost">
+                        <div class="cost-value" id="multitapCost">1 000</div>
+                        <div class="cost-label">монет</div>
+                    </div>
+                </div>
+
+                <div class="upgrade-card" onclick="buyUpgrade('energy')">
+                    <div class="upgrade-icon yellow">
+                        <svg viewBox="0 0 24 24"><path d="M11 15H6l7-14v8h5l-7 14v-8z"/></svg>
+                    </div>
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">Энергия</div>
+                        <div class="upgrade-desc" id="energyDesc">+200 к макс. энергии</div>
+                        <div class="upgrade-level">Уровень: <span id="energyLevel">0</span>/30</div>
+                    </div>
+                    <div class="upgrade-cost">
+                        <div class="cost-value" id="energyCost">2 500</div>
+                        <div class="cost-label">монет</div>
+                    </div>
+                </div>
+
+                <div class="upgrade-card" onclick="buyUpgrade('recharge')">
+                    <div class="upgrade-icon green">
+                        <svg viewBox="0 0 24 24"><path d="M16.67 4H15V2h-6v2H7.33C6.6 4 6 4.6 6 5.33v15.34C6 21.4 6.6 22 7.33 22h9.34c.73 0 1.33-.6 1.33-1.33V5.33C18 4.6 17.4 4 16.67 4zM11 20v-5.5H9L13 7v5.5h2L11 20z"/></svg>
+                    </div>
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">Быстрая зарядка</div>
+                        <div class="upgrade-desc" id="rechargeDesc">+1 к скорости восстановления</div>
+                        <div class="upgrade-level">Уровень: <span id="rechargeLevel">0</span>/20</div>
+                    </div>
+                    <div class="upgrade-cost">
+                        <div class="cost-value" id="rechargeCost">5 000</div>
+                        <div class="cost-label">монет</div>
+                    </div>
+                </div>
+
+                <div class="upgrade-card" onclick="buyUpgrade('autobot')">
+                    <div class="upgrade-icon blue">
+                        <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5z"/></svg>
+                    </div>
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">Авто-бот</div>
+                        <div class="upgrade-desc" id="autobotDesc">+1 монет/сек</div>
+                        <div class="upgrade-level">Уровень: <span id="autobotLevel">0</span>/25</div>
+                    </div>
+                    <div class="upgrade-cost">
+                        <div class="cost-value" id="autobotCost">15 000</div>
+                        <div class="cost-label">монет</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Home Tab -->
+            <div class="tab-content home-tab active" id="tab-home">
+                <div class="coin-wrapper" id="coinWrapper">
+                    <div class="glow-ring"></div>
+                    <div class="glow-ring"></div>
+                    <div class="glow-ring"></div>
+                    <div class="coin" id="coin">
+                        <img class="coin-image" src="https://public.bnbstatic.com/image/pgc/202402/e912e601d04c20390684b14495ffe9ee.jpg" alt="Tap Coin">
+                    </div>
+                </div>
+                
+                <div class="energy-container">
+                    <div class="energy-header">
+                        <svg viewBox="0 0 24 24"><path d="M11 15H6l7-14v8h5l-7 14v-8z"/></svg>
+                        <span id="energyText">1000 / 1000</span>
+                    </div>
+                    <div class="energy-bar">
+                        <div class="energy-fill" id="energyBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Listing Tab -->
+            <div class="tab-content listing-tab" id="tab-listing">
+                <div class="listing-card">
+                    <div class="listing-icon">
+                        <svg viewBox="0 0 24 24"><path d="M2.81 14.12L5.64 11.29L8.17 10.79C11.39 6.41 17.55 4.22 19.78 4.22C19.78 6.45 17.59 12.61 13.21 15.83L12.71 18.36L9.88 21.19L9.17 17.66C7.76 17.66 6.37 17.14 5.29 16.06L5.27 16.04C4.19 14.96 3.68 13.57 3.68 12.17L2.81 14.12M5.64 16.95L7.39 18.7L6.46 21.19L2.81 21.19L2.81 17.53L5.64 16.95M13.54 7.26C12.5 7.26 11.65 8.11 11.65 9.15C11.65 10.19 12.5 11.04 13.54 11.04C14.58 11.04 15.43 10.19 15.43 9.15C15.43 8.11 14.58 7.26 13.54 7.26Z"/></svg>
+                    </div>
+                    <div class="listing-title">Листинг PurCoin</div>
+                    <div class="listing-subtitle">Листинг планируется на</div>
+                    <div class="listing-date">Январь 2027</div>
+                    <div class="listing-hint">Продолжайте тапать и накапливать PurCoin!</div>
+                    <div class="listing-balance-box">
+                        <div class="listing-balance-label">Ваш текущий баланс</div>
+                        <div class="listing-balance-value" id="listingBalance">0 PC</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item" onclick="switchTab('shop')" id="nav-shop">
+                <svg viewBox="0 0 24 24"><path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm0 10c-2.76 0-5-2.24-5-5h2c0 1.66 1.34 3 3 3s3-1.34 3-3h2c0 2.76-2.24 5-5 5z"/></svg>
+                <span>Магазин</span>
+            </div>
+            <div class="nav-item active" onclick="switchTab('home')" id="nav-home">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <span>Главная</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('listing')" id="nav-listing">
+                <svg viewBox="0 0 24 24"><path d="M2.81 14.12L5.64 11.29L8.17 10.79C11.39 6.41 17.55 4.22 19.78 4.22C19.78 6.45 17.59 12.61 13.21 15.83L12.71 18.36L9.88 21.19L9.17 17.66C7.76 17.66 6.37 17.14 5.29 16.06L5.27 16.04C4.19 14.96 3.68 13.57 3.68 12.17L2.81 14.12M5.64 16.95L7.39 18.7L6.46 21.19L2.81 21.19L2.81 17.53L5.64 16.95M13.54 7.26C12.5 7.26 11.65 8.11 11.65 9.15C11.65 10.19 12.5 11.04 13.54 11.04C14.58 11.04 15.43 10.19 15.43 9.15C15.43 8.11 14.58 7.26 13.54 7.26Z"/></svg>
+                <span>Листинг</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create stars
+        function createStars() {
+            const container = document.getElementById('stars');
+            const count = 50;
+            
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (2 + Math.random() * 2) + 's';
+                container.appendChild(star);
+            }
+        }
+        createStars();
+
+        // Game State - default values
+        const defaultGame = {
+            balance: 0,
+            energy: 1000,
+            maxEnergy: 1000,
+            perTap: 1,
+
+            rechargeRate: 3,
+            autoPerSecond: 0,
+            totalEarned: 0,
+            upgrades: {
+                multitap: { level: 0, baseCost: 1000, costMult: 1.8 },
+                energy: { level: 0, baseCost: 2500, costMult: 1.9 },
+                recharge: { level: 0, baseCost: 5000, costMult: 2.2 },
+                autobot: { level: 0, baseCost: 15000, costMult: 2.5 }
+            }
+        };
+
+        let game = JSON.parse(JSON.stringify(defaultGame));
+
+        // Load saved game
+        const saved = localStorage.getItem('purCoinSave');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                // Merge saved data with defaults to ensure all properties exist
+                game.balance = parsed.balance || 0;
+                game.energy = parsed.energy || 1000;
+                game.maxEnergy = parsed.maxEnergy || 1000;
+                game.perTap = parsed.perTap || 1;
+
+                game.rechargeRate = parsed.rechargeRate || 1;
+                game.autoPerSecond = parsed.autoPerSecond || 0;
+                game.totalEarned = parsed.totalEarned || 0;
+                
+                // Merge upgrades carefully
+                if (parsed.upgrades) {
+                    for (const key in defaultGame.upgrades) {
+                        if (parsed.upgrades[key]) {
+                            game.upgrades[key].level = parsed.upgrades[key].level || 0;
+                        }
+                    }
+                }
+            } catch(e) {
+                console.log('Error loading save, using defaults');
+            }
+        }
+
+        // Elements
+        const coin = document.getElementById('coin');
+        const coinWrapper = document.getElementById('coinWrapper');
+        const balanceEl = document.getElementById('balance');
+        const energyBar = document.getElementById('energyBar');
+        const energyText = document.getElementById('energyText');
+
+        // Format number with spaces
+        function formatNum(n) {
+            if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+            if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+            if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+            return Math.floor(n).toLocaleString('ru-RU');
+        }
+
+        // Get upgrade cost
+        function getUpgradeCost(type) {
+            const upg = game.upgrades[type];
+            return Math.floor(upg.baseCost * Math.pow(upg.costMult, upg.level));
+        }
+
+        // Get upgrade bonus based on level (what you GET at this level)
+        function getUpgradeBonus(type, level) {
+            switch(type) {
+                case 'multitap': return 1; // Always +1 per tap per level
+                case 'energy': return 200 + level * 100; // +200, +300, +400...
+                case 'recharge': return 1; // Always +1 energy/sec per level
+                case 'autobot': return 1 + Math.floor(level / 2); // +1, +1, +2, +2, +3...
+            }
+            return 1;
+        }
+
+        // Update UI
+        function updateUI() {
+            balanceEl.textContent = formatNum(game.balance);
+            document.getElementById('listingBalance').textContent = formatNum(game.balance) + ' PC';
+            energyBar.style.width = (game.energy / game.maxEnergy * 100) + '%';
+            energyText.textContent = Math.floor(game.energy) + ' / ' + game.maxEnergy;
+
+            document.getElementById('perTap').textContent = '+' + game.perTap;
+
+            // Max levels
+            const maxLevels = { multitap: 50, energy: 30, recharge: 20, autobot: 25 };
+
+            // Update upgrades
+            for (const key of Object.keys(game.upgrades)) {
+                const upg = game.upgrades[key];
+                const cost = getUpgradeCost(key);
+                const isMaxed = upg.level >= maxLevels[key];
+                const card = document.querySelector(`[onclick="buyUpgrade('${key}')"]`);
+                
+                document.getElementById(key + 'Cost').textContent = isMaxed ? 'MAX' : formatNum(cost);
+                document.getElementById(key + 'Level').textContent = upg.level;
+                
+                // Update description with next bonus
+                const nextBonus = getUpgradeBonus(key, upg.level);
+                const descEl = document.getElementById(key + 'Desc');
+                if (descEl && !isMaxed) {
+                    switch(key) {
+                        case 'multitap': descEl.textContent = '+' + nextBonus + ' монет за тап'; break;
+                        case 'energy': descEl.textContent = '+' + nextBonus + ' к макс. энергии'; break;
+                        case 'recharge': descEl.textContent = '+' + nextBonus + ' к скорости'; break;
+                        case 'autobot': descEl.textContent = '+' + nextBonus + ' монет/сек'; break;
+                    }
+                } else if (descEl) {
+                    descEl.textContent = 'Максимальный уровень!';
+                }
+                
+                // Disable if maxed or can't afford
+                if (card) {
+                    card.classList.toggle('disabled', isMaxed || game.balance < cost);
+                }
+            }
+        }
+
+
+
+        // Handle tap
+        function handleTap(e) {
+            e.preventDefault();
+            const touches = e.touches || [{ clientX: e.clientX, clientY: e.clientY }];
+            
+            for (const touch of touches) {
+                if (game.energy >= 1) {
+                    game.energy--;
+                    game.balance += game.perTap;
+                    game.totalEarned += game.perTap;
+
+                    // Floating text
+                    const rect = coinWrapper.getBoundingClientRect();
+                    const txt = document.createElement('div');
+                    txt.className = 'tap-text';
+                    txt.textContent = '+' + game.perTap;
+                    txt.style.left = (touch.clientX - rect.left - 20) + 'px';
+                    txt.style.top = (touch.clientY - rect.top - 20) + 'px';
+                    coinWrapper.appendChild(txt);
+                    setTimeout(() => txt.remove(), 700);
+                }
+            }
+            updateUI();
+        }
+
+        coin.addEventListener('touchstart', handleTap, { passive: false });
+        coin.addEventListener('mousedown', handleTap);
+
+        // Buy upgrade
+        function buyUpgrade(type) {
+            const upg = game.upgrades[type];
+            const maxLevels = { multitap: 50, energy: 30, recharge: 20, autobot: 25 };
+            const cost = getUpgradeCost(type);
+
+            // Check if maxed
+            if (upg.level >= maxLevels[type]) return;
+
+            if (game.balance >= cost) {
+                game.balance -= cost;
+                
+                // Get bonus at current level BEFORE incrementing
+                const bonus = getUpgradeBonus(type, upg.level);
+                upg.level++;
+
+                switch(type) {
+                    case 'multitap': 
+                        game.perTap += bonus; 
+                        break;
+                    case 'energy': 
+                        game.maxEnergy += bonus; 
+                        game.energy = Math.min(game.energy + bonus, game.maxEnergy);
+                        break;
+                    case 'recharge': 
+                        game.rechargeRate += bonus; 
+                        break;
+                    case 'autobot': 
+                        game.autoPerSecond += bonus; 
+                        break;
+                }
+                updateUI();
+                saveGame();
+            }
+        }
+
+        // Switch tab
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.getElementById('nav-' + tab).classList.add('active');
+        }
+
+        // Energy regen
+        setInterval(() => {
+            if (game.energy < game.maxEnergy) {
+                game.energy = Math.min(game.maxEnergy, game.energy + game.rechargeRate);
+                updateUI();
+            }
+        }, 1000);
+
+        // Auto earning
+        setInterval(() => {
+            if (game.autoPerSecond > 0) {
+                game.balance += game.autoPerSecond;
+                game.totalEarned += game.autoPerSecond;
+                updateUI();
+            }
+        }, 1000);
+
+        // Save game
+        function saveGame() {
+            localStorage.setItem('purCoinSave', JSON.stringify(game));
+        }
+
+        // Auto save
+        setInterval(saveGame, 3000);
+
+        // Init
+        updateUI();
+    </script>
+</body>
+</html>
